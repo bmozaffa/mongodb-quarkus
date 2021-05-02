@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-quarkus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: mongodb-quarkus
+  template:
+    metadata:
+      labels:
+        name: mongodb-quarkus
+    spec:
+      containers:
+        - name: mongodb-quarkus
+          # Replace this with the built image name
+          image: quay.io/bmozaffa/mongodb-quarkus
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8080
+            protocol: TCP
