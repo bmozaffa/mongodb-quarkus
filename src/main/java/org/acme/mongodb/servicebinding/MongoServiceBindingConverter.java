@@ -15,29 +15,30 @@ public class MongoServiceBindingConverter implements ServiceBindingConverter {
 
     @Override
     public Optional<ServiceBindingConfigSource> convert(List<ServiceBinding> serviceBindings) {
-        Optional<ServiceBindingConfigSource> optional = Optional.empty();
-        for (ServiceBinding serviceBinding : serviceBindings) {
-            if ("MongoDB".equals(serviceBinding.getType())) {
-                Map<String, String> properties = new HashMap<>();
-                Map<String, String> bindings = serviceBinding.getProperties();
-                String user = bindings.get("db.user");
-                String password = bindings.get("db.password");
-                String host = bindings.getOrDefault("db.host", "localhost");
-                String port = bindings.getOrDefault("db.port", "27017");
-                String database = bindings.getOrDefault("db.name", "");
-                String mongoConnectionString;
-                if( user == null ) {
-                    mongoConnectionString = String.format("mongodb://%s:%s/%s?ssl=true&replicaSet=atlas-nwp2f7-shard-0&authSource=admin&retryWrites=true&w=majority", host, port, database);
-                } else {
-                    mongoConnectionString = String.format("mongodb://%s:%s@%s:%s/%s?ssl=true&replicaSet=atlas-nwp2f7-shard-0&authSource=admin&retryWrites=true&w=majority", user, password, host, port, database);
-                }
-                LOGGER.info("MongoDB Connection String is " + mongoConnectionString);
-                properties.put("MONGODB_CONNECTION_STRING", mongoConnectionString);
-                optional = Optional.of(new ServiceBindingConfigSource("mongodb-service-binding-source", properties));
-            } else {
-                LOGGER.warning("Ignoring service binding of type " + serviceBinding.getType() + " and only supporting MongoDB");
-            }
+        String bindingType = "MongoDB";
+        Optional<ServiceBinding> matchingByType = ServiceBinding.singleMatchingByType(bindingType, serviceBindings);
+        if (!matchingByType.isPresent()) {
+            LOGGER.info("Did not find a MongoDB type binding");
+            return Optional.empty();
         }
-        return optional;
+
+        Map<String, String> properties = new HashMap<>();
+        ServiceBinding binding = matchingByType.get();
+
+        Map<String, String> bindings = binding.getProperties();
+        String user = bindings.get("db.user");
+        String password = bindings.get("db.password");
+        String host = bindings.getOrDefault("db.host", "localhost");
+        String port = bindings.getOrDefault("db.port", "27017");
+        String database = bindings.getOrDefault("db.name", "");
+        String mongoConnectionString;
+        if( user == null ) {
+            mongoConnectionString = String.format("mongodb://%s:%s/%s?ssl=true&replicaSet=atlas-nwp2f7-shard-0&authSource=admin&retryWrites=true&w=majority", host, port, database);
+        } else {
+            mongoConnectionString = String.format("mongodb://%s:%s@%s:%s/%s?ssl=true&replicaSet=atlas-nwp2f7-shard-0&authSource=admin&retryWrites=true&w=majority", user, password, host, port, database);
+        }
+        LOGGER.info("MongoDB Connection String is " + mongoConnectionString);
+        properties.put("MONGODB_CONNECTION_STRING", mongoConnectionString);
+        return Optional.of(new ServiceBindingConfigSource(bindingType + "-k8s-service-binding-source", properties));
     }
 }
