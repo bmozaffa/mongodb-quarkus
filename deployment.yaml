@@ -1,22 +1,50 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: mongodb-quarkus
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      name: mongodb-quarkus
-  template:
+apiVersion: v1
+kind: List
+items:
+  - kind: Deployment
+    apiVersion: apps/v1
     metadata:
+      name: mongodb-quarkus
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          name: mongodb-quarkus
+      template:
+        metadata:
+          labels:
+            name: mongodb-quarkus
+        spec:
+          containers:
+            - name: mongodb-quarkus
+              # Replace this with the built image name
+              image: quay.io/bmozaffa/mongodb-quarkus
+              imagePullPolicy: Always
+              ports:
+                - containerPort: 8080
+                  protocol: TCP
+  - kind: Service
+    apiVersion: v1
+    metadata:
+      name: mongodb-quarkus
       labels:
         name: mongodb-quarkus
     spec:
-      containers:
-        - name: mongodb-quarkus
-          # Replace this with the built image name
-          image: quay.io/bmozaffa/mongodb-quarkus
-          imagePullPolicy: Always
-          ports:
-          - containerPort: 8080
-            protocol: TCP
+      ports:
+        - port: 8080
+          protocol: TCP
+          targetPort: 8080
+      selector:
+        name: mongodb-quarkus
+  - kind: Route
+    apiVersion: route.openshift.io/v1
+    metadata:
+      name: mongodb-quarkus
+      labels:
+        name: mongodb-quarkus
+    spec:
+      port:
+        targetPort: 8080
+      to:
+        kind: Service
+        name: mongodb-quarkus
