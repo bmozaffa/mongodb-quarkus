@@ -28,20 +28,15 @@ public class MongoServiceBindingConverter implements ServiceBindingConverter {
         Map<String, String> bindings = binding.getProperties();
         String user = bindings.get("db.user");
         String password = bindings.get("db.password");
-        String host = bindings.getOrDefault("db.host", "localhost");
-        String port = bindings.get("db.port");
-        String hostPort;
-        if( port == null ) {
-            hostPort = host;
-        } else {
-            hostPort = String.format("%s:%s", host, port);
-        }
-        String database = bindings.getOrDefault("db.name", "");
+        String srvConnectionString = bindings.getOrDefault("db.srvConnectionString", "localhost");
+        srvConnectionString = srvConnectionString.replace("mongodb+srv://", "");
+        String database = bindings.get("db.name");
         String mongoConnectionString;
+
         if( user == null ) {
-            mongoConnectionString = String.format("mongodb+srv://%s/%s?retryWrites=true&w=majority", hostPort, database);
+            mongoConnectionString = String.format("mongodb+srv://%s/%s?retryWrites=true&w=majority", srvConnectionString, database);
         } else {
-            mongoConnectionString = String.format("mongodb+srv://%s:%s@%s/%s?retryWrites=true&w=majority", user, password, hostPort, database);
+            mongoConnectionString = String.format("mongodb+srv://%s:%s@%s/%s?retryWrites=true&w=majority", user, password, srvConnectionString, database);
         }
         LOGGER.info("MongoDB Connection String is " + mongoConnectionString);
         properties.put("MONGODB_CONNECTION_STRING", mongoConnectionString);
