@@ -26,17 +26,17 @@ public class MongoServiceBindingConverter implements ServiceBindingConverter {
         ServiceBinding binding = matchingByType.get();
 
         Map<String, String> bindings = binding.getProperties();
-        String user = bindings.get("db.user");
-        String password = bindings.get("db.password");
-        String host = bindings.getOrDefault("db.host", "localhost");
-        String port = bindings.get("db.port");
+        String user = bindings.get("username");
+        String password = bindings.get("password");
+        String host = bindings.getOrDefault("host", "localhost");
+        String port = bindings.get("port");
         String hostPort;
         if( port == null ) {
             hostPort = host;
         } else {
             hostPort = String.format("%s:%s", host, port);
         }
-        String database = bindings.getOrDefault("db.name", "");
+        String database = bindings.getOrDefault("database", "");
         String mongoConnectionString;
         if( user == null ) {
             mongoConnectionString = String.format("mongodb+srv://%s/%s?retryWrites=true&w=majority", hostPort, database);
